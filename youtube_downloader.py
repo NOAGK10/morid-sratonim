@@ -18,7 +18,7 @@ RES_DIR = Path(getattr(sys, "_MEIPASS", APP_DIR))
 DATA_DIR = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "MoridSratonim" if FROZEN else APP_DIR
 BIN_DIR = DATA_DIR / "bin"
 DEFAULT_FOLDER = Path.home() / "Downloads"
-# הקישור להורדת התוכנה (למשל מ-Google Drive), שהכפתור "שתפי את התוכנה" מעתיק
+# הקישור להורדת התוכנה (למשל מ-Google Drive), שהכפתור "שתף את התוכנה" מעתיק
 SHARE_URL = "https://github.com/NOAGK10/morid-sratonim/releases/latest/download/MoridSratonim.exe"
 
 # צבעים בהשראת המצב הכהה של יוטיוב
@@ -109,7 +109,7 @@ def download(url: str, fmt: str, folder: str, progress_hook=None) -> str:
         if any("NetFree" in w for w in logger.warnings) or "NetFree" in str(e):
             raise RuntimeError(
                 "הסרטון הזה עדיין לא מאושר בנטפרי.\n\n"
-                "פתחי את הקישור בדפדפן ולחצי על \"לחץ כאן כדי לשלוח את הוידאו לבדיקה\". "
+                "פתח את הקישור בדפדפן ולחץ על \"לחץ כאן כדי לשלוח את הוידאו לבדיקה\". "
                 "אחרי שנטפרי יאשרו, הסרטון יורד כאן כרגיל."
             ) from None
         raise
@@ -205,10 +205,10 @@ class App(tk.Tk):
         self._draw_logo(logo)
         tk.Label(header, text="מוריד הסרטונים", bg=BG, fg=TEXT,
                  font=(FONT, 16, "bold")).pack(side="right", padx=8)
-        Pill(header, "שתפי את התוכנה", self.share_app, width=140, height=32,
+        Pill(header, "שתף את התוכנה", self.share_app, width=140, height=32,
              font_size=9).pack(side="left")
 
-        tk.Label(body, text="הדביקי קישור מיוטיוב, בחרי פורמט ולחצי על הורדה", bg=BG,
+        tk.Label(body, text="הדבק קישור מיוטיוב, בחר פורמט ולחץ על הורדה", bg=BG,
                  fg=MUTED, font=(FONT, 10)).pack(anchor="e", pady=(18, 8))
 
         # שורת הקישור, כמו תיבת החיפוש של יוטיוב
@@ -357,7 +357,7 @@ class App(tk.Tk):
         self.download_btn.set_enabled(False)
         self.set_progress(0)
         self.actions.pack_forget()
-        self.set_status("מתחילה הורדה")
+        self.set_status("מתחיל הורדה")
         threading.Thread(target=self._worker, args=(url, self.fmt, self.folder), daemon=True).start()
 
     def _hook(self, d):
@@ -366,7 +366,7 @@ class App(tk.Tk):
             pct = d.get("downloaded_bytes", 0) / total * 100 if total else 0
             self.after(0, self._update, pct, f"הורדו {pct:.0f}%")
         elif d["status"] == "finished":
-            self.after(0, self._update, 100, "ממירה ושומרת את הקובץ")
+            self.after(0, self._update, 100, "ממיר ושומר את הקובץ")
 
     def _update(self, pct, text):
         self.set_progress(pct)
