@@ -1,0 +1,72 @@
+#morid-download {
+  position: relative;
+  display: inline-flex;
+  margin-inline-start: 8px;
+  font-family: "Roboto", "Arial", sans-serif;
+  z-index: 2000;
+}
+
+#morid-download.floating {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  margin: 0;
+}
+
+#morid-download .morid-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 18px;
+  background: #ff0000;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+#morid-download .morid-main:hover {
+  background: #cc0000;
+}
+
+#morid-download .morid-menu {
+  display: none;
+  position: absolute;
+  top: 42px;
+  right: 0;
+  min-width: 140px;
+  padding: 8px 0;
+  border-radius: 12px;
+  background: #282828;
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.3);
+}
+
+#morid-download.floating .morid-menu {
+  top: auto;
+  bottom: 42px;
+  right: auto;
+  left: 0;
+}
+
+#morid-download.open .morid-menu {
+  display: block;
+}
+
+#morid-download .morid-menu button {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  background: none;
+  color: #f1f1f1;
+  font-size: 14px;
+  text-align: right;
+  cursor: pointer;
+}
+
+#morid-download .morid-menu button:hover {
+  background: #3f3f3f;
+}

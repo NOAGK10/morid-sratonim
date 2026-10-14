@@ -8,6 +8,7 @@ import threading
 import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox
+from urllib.parse import parse_qs, urlparse
 
 import imageio_ffmpeg
 import yt_dlp
@@ -20,6 +21,8 @@ BIN_DIR = DATA_DIR / "bin"
 DEFAULT_FOLDER = Path.home() / "Downloads"
 # הקישור להורדת התוכנה (למשל מ-Google Drive), שהכפתור "שתף את התוכנה" מעתיק
 SHARE_URL = "https://github.com/NOAGK10/morid-sratonim/releases/latest/download/MoridSratonim.exe"
+# קישורים בצורה morid://download?fmt=mp3&url=... פותחים את התוכנה (משמש את התוסף לדפדפן)
+PROTOCOL = "morid"
 
 # צבעים בהשראת המצב הכהה של יוטיוב
 BG = "#0f0f0f"
@@ -428,9 +431,54 @@ class App(tk.Tk):
             os.startfile(self.folder)
 
 
-if __name__ == "__main__":
-    # מצב שורת פקודה לבדיקה: python youtube_downloader.py <url> <mp3|mp4> [folder]
-    if len(sys.argv) >= 3:
-        print(download(sys.argv[1], sys.argv[2], sys.argv[3] if len(sys.argv) > 3 else str(DEFAULT_FOLDER)))
+def register_protocol():
+    """רושם את הקישורים morid:// על התוכנה, כדי שהתוסף בדפדפן יוכל לפתוח אותה."""
+    if os.name != "nt":
+        return
+    import winreg
+    if FROZEN:
+        command = f'"{sys.executable}" "%1"'
     else:
-        App().mainloop()
+        pythonw = Path(sys.executable).with_name("pythonw.exe")
+        command = f'"{pythonw}" "{Path(__file__).resolve()}" "%1"'
+    key = rf"Software\Classes\{PROTOCOL}"
+    try:
+        with winreg.CreateKey(winreg.HKEY_CURRENT_USER, key) as k:
+            winreg.SetValueEx(k, "", 0, winreg.REG_SZ, "URL:מוריד הסרטונים")
+            winreg.SetValueEx(k, "URL Protocol", 0, winreg.REG_SZ, "")
+        with winreg.CreateKey(winreg.HKEY_CURRENT_USER, key + r"\shell\open\command") as k:
+            winreg.SetValueEx(k, "", 0, winreg.REG_SZ, command)
+    except OSError:
+        pass
+
+
+def parse_protocol_link(link: str):
+    """מפרק קישור כמו morid://download?fmt=mp3&url=... ומחזיר (url, fmt), רק לקישורים של יוטיוב."""
+    query = parse_qs(urlparse(link).query)
+    url = clean_url(query.get("url", [""])[0])
+    fmt = query.get("fmt", ["mp4"])[0]
+    host = (urlparse(url).hostname or "").lower()
+    is_youtube = host in ("youtube.com", "youtu.be") or host.endswith(".youtube.com")
+    if not is_youtube or fmt not in ("mp3", "mp4"):
+        return None, None
+    return url, fmt
+
+
+if __name__ == "__main__":
+    args = sys.argv[1:]
+    # מצב שורת פקודה לבדיקה: python youtube_downloader.py <url> <mp3|mp4> [folder]
+    if len(args) >= 2:
+        print(download(args[0], args[1], args[2] if len(args) > 2 else str(DEFAULT_FOLDER)))
+    else:
+        register_protocol()
+        app = App()
+        # נפתח מכפתור ההורדה של התוסף: ממלאים את הקישור ומתחילים להוריד מיד
+        if args and args[0].lower().startswith(PROTOCOL + ":"):
+            url, fmt = parse_protocol_link(args[0])
+            if url:
+                app.entry.insert(0, url)
+                app.set_format(fmt)
+                app.attributes("-topmost", True)
+                app.after(500, lambda: app.attributes("-topmost", False))
+                app.after(300, app.start)
+        app.mainloop()
